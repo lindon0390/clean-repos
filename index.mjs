@@ -1,3 +1,5 @@
+#!/usr/bin/env zx
+
 import 'zx/globals';
 import 'path';
 import 'process';
@@ -8,6 +10,8 @@ dotenv.config();
 $.verbose = true; //prints all executed commands alongside with their outputs
 
 const dirPath = process.env.PATH_REPOS ?? '';
+
+await $`echo $PWD`;
 
 function getDirectories(sourcePath) {
     return fs.readdirSync(sourcePath)
