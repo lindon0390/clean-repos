@@ -1,10 +1,12 @@
 {
-  "name": "script-zx",
+  "name": "clean-repos",
   "version": "1.0.0",
   "description": "scripts in zx",
   "main": "index.js",
   "dependencies": {
-    "zx": "^8.3.2"
+    "zx": "^8.3.2",
+    "dotenv": "^16.0.2",
+    "fs-extra": "^10.1.0"
   },
   "devDependencies": {},
   "scripts": {
@@ -13,5 +15,5 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "MIT"
 }
