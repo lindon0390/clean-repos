@@ -22,7 +22,7 @@
     "linked-helper2": "dev",
     "profiles-aggregation-service": "dev",
     "profiles-aggregation-service2": "dev",
-    "script-zx": "dev",
-    "script-zx2": "dev",
-    "script-zx3": "dev"
+    "script-zx": "master",
+    "script-zx2": "master",
+    "script-zx3": "master"
   }
