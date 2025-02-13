@@ -73,22 +73,14 @@ async function processRepos() {
     // console.log("📚 Главные ветки:", mainBranches);
     const repos = await getGitRepos(mainBranches); // Берем только нужные репозитории
     // console.log("📁 Найденные репозитории:", repos);
-    let i = 0;
     for (const repo of repos) {
-        console.log(`🔄 i = ${i}, Обрабатываю репозиторий: ${repo}`);
-        if (i == 1) {
-            console.log("🛑 Остановка на 1 репозитории");
-            break;
-        }
         const repoName = path.basename(repo);
         const mainBranch = mainBranches[repoName]; // Главная ветка из dir.json
         await deleteLocalBranches(repo, mainBranch);
-        
-        i++;
         console.log("🔄 Следующий репозиторий...");
     }
 
-    console.log("🎉 Все ненужные локальные ветки удалены!");
+    console.log(`🎉 Все ненужные локальные ветки удалены!`);
 }
 
 await processRepos();
