@@ -46,26 +46,36 @@ async function getGitRepos(mainBranches) {
 // Удаляем все локальные ветки, кроме указанной
 async function deleteLocalBranches(repoPath, mainBranch) {
     try {
-      await fs.access(path.join(repoPath, ".git")); // Проверяем наличие .git
-      cd(repoPath);
-      console.log(`🔄 Обрабатываю репозиторий: ${repoPath}`);
-  
-      let branches = await $`git branch | grep -v '${mainBranch}' || true`;
-      branches = branches.stdout.trim().split("\n").map(b => b.trim()).filter(b => b !== "");
-  
-      if (branches.length === 0) {
-        console.log("✅ Нет локальных веток для удаления.");
-        return;
-      }
-  
-      for (const branch of branches) {
-        console.log(`🗑 Удаляю ветку: ${branch}`);
-        await $`git branch -D ${branch} || true`;
-      }
+        await fs.access(path.join(repoPath, ".git")); // Проверяем наличие .git
+        cd(repoPath);
+        console.log(`🔄 Обрабатываю репозиторий: ${repoPath}`);
+
+        // Переключаемся на главную ветку перед удалением
+        console.log(`🔀 Переключаюсь на основную ветку: ${mainBranch}`);
+        await $`git checkout ${mainBranch} || true`; // Игнорируем ошибку, если уже на ней
+        
+        // Подтягиваем последние изменения
+        console.log(`🔄 Выполняю git pull для ${mainBranch}`);
+        await $`git pull --rebase || true`; // --rebase помогает избежать merge-коммитов
+
+        // Получаем список всех локальных веток, кроме главной
+        let branches = await $`git branch | grep -v '${mainBranch}' || true`;
+        branches = branches.stdout.trim().split("\n").map(b => b.trim()).filter(b => b !== "");
+
+        if (branches.length === 0) {
+            console.log("✅ Нет локальных веток для удаления.");
+            return;
+        }
+
+        // Удаляем каждую найденную ветку
+        for (const branch of branches) {
+            console.log(`🗑 Удаляю ветку: ${branch}`);
+            await $`git branch -D ${branch} || true`;
+        }
     } catch (error) {
-      console.error(`❌ Ошибка в ${repoPath}:`, error.message);
+        console.error(`❌ Ошибка в ${repoPath}:`, error.message);
     }
-  }
+}
 
 // Основная функция
 async function processRepos() {
