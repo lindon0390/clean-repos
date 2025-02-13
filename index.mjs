@@ -50,13 +50,22 @@ async function deleteLocalBranches(repoPath, mainBranch) {
         cd(repoPath);
         console.log(`🔄 Обрабатываю репозиторий: ${repoPath}`);
 
-        // Переключаемся на главную ветку перед удалением
+        // Откатываем все незакоммиченные изменения
+        console.log("🔄 Откатываю все локальные изменения...");
+        await $`git reset --hard || true`;
+        await $`git clean -fd || true`;
+
+        // Переключаемся на главную ветку
         console.log(`🔀 Переключаюсь на основную ветку: ${mainBranch}`);
-        await $`git checkout ${mainBranch} || true`; // Игнорируем ошибку, если уже на ней
-        
+        await $`git checkout ${mainBranch} || true`;
+
         // Подтягиваем последние изменения
         console.log(`🔄 Выполняю git pull для ${mainBranch}`);
-        await $`git pull --rebase || true`; // --rebase помогает избежать merge-коммитов
+        await $`git pull --rebase || true`;
+
+        // Удаляю старые ссылки на удалённые ветки
+        console.log("🧹 Удаляю старые ссылки на удалённые ветки...");
+        await $`git remote prune origin || true`;
 
         // Получаем список всех локальных веток, кроме главной
         let branches = await $`git branch | grep -v '${mainBranch}' || true`;
@@ -64,14 +73,23 @@ async function deleteLocalBranches(repoPath, mainBranch) {
 
         if (branches.length === 0) {
             console.log("✅ Нет локальных веток для удаления.");
-            return;
+        } else {
+            for (const branch of branches) {
+                console.log(`🗑 Удаляю ветку: ${branch}`);
+                await $`git branch -D ${branch} || true`;
+            }
         }
 
-        // Удаляем каждую найденную ветку
-        for (const branch of branches) {
-            console.log(`🗑 Удаляю ветку: ${branch}`);
-            await $`git branch -D ${branch} || true`;
-        }
+        // Очистка и сжатие репозитория после удаления веток
+        console.log("🧹 Очищаю и уменьшаю размер репозитория...");
+        await $`git gc --aggressive --prune=now || true`;
+
+        // Оптимизация pack-файлов
+        console.log("🗜 Оптимизирую pack-файлы...");
+        await $`git repack -a -d --depth=250 --window=250 || true`;
+
+        console.log("✅ Репозиторий очищен и оптимизирован!");
+
     } catch (error) {
         console.error(`❌ Ошибка в ${repoPath}:`, error.message);
     }
